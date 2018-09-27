@@ -10,40 +10,26 @@ namespace lab1_Puzzle_2b
 {
     class Puzzle
     {
-        private LinkedList<Detail> listDetails;  // список деталей
-        private int[] perm;  // массив номеров элементов 
+        private Detail[] arrayDetails;  // массив деталей
+        private int[] perm;  // массив номеров элементов (в который заносится текущая перестановка)
         private int countColomns;  // количество столбцов
         private int countLines; // количество строк
         private int countElem; // кол-во элементов
-        private MyColor[] matrix;  // матрица цветов
-        public  Graphics gr; // полотно
+        private MyColor[] matrColor;  // матрица цветов
+        public Graphics gr; // полотно
 
-        // координаты позиций
-        private static int finishX = -10;
-        private static int startX = 300;
-
-        private static int finishY = 40;
-        private static int startY = 40;
+        private Random rand = new Random();
 
         private static int step = 50;
 
         public Puzzle(int _countColomns, int _countLines, Graphics _gr)
         {
-            this.countColomns = _countColomns;
-            this.countLines = _countLines;
+            countColomns = _countColomns;
+            countLines = _countLines;
             countElem = _countColomns * _countLines;
-            this.gr = _gr;
+            gr = _gr;
+            arrayDetails = new Detail[countElem];
             initMatrixColor();
-            listDetails = new LinkedList<Detail>();
-            listDetails.AddLast(new Detail(MyColor.GREEN, TypeSide.SQUARE_SIDE, TypeSide.STRAIGHT_SIDE, TypeSide.SQUARE_SIDE, TypeSide.STRAIGHT_SIDE, "../../images/8.png", gr));  // 8
-            listDetails.AddLast(new Detail(MyColor.GREEN, TypeSide.REVERSE_SQUARE_SIDE, TypeSide.STRAIGHT_SIDE, TypeSide.STRAIGHT_SIDE, TypeSide.TRIANGLE_SIDE, "../../images/3.png", gr));  // 3
-            listDetails.AddLast(new Detail(MyColor.BLUE, TypeSide.STRAIGHT_SIDE, TypeSide.STRAIGHT_SIDE, TypeSide.REVERSE_TRIANGLE_SIDE, TypeSide.SQUARE_SIDE, "../../images/6.png", gr));  // 6
-            listDetails.AddLast(new Detail(MyColor.BLUE, TypeSide.REVERSE_TRIANGLE_SIDE, TypeSide.SQUARE_SIDE, TypeSide.STRAIGHT_SIDE, TypeSide.STRAIGHT_SIDE, "../../images/2.png", gr));  // 2
-            listDetails.AddLast(new Detail(MyColor.RED, TypeSide.STRAIGHT_SIDE, TypeSide.TRIANGLE_SIDE, TypeSide.STRAIGHT_SIDE, TypeSide.REVERSE_SQUARE_SIDE, "../../images/1.png", gr));  // 1
-            listDetails.AddLast(new Detail(MyColor.RED, TypeSide.STRAIGHT_SIDE, TypeSide.STRAIGHT_SIDE, TypeSide.REVERSE_SQUARE_SIDE, TypeSide.STRAIGHT_SIDE, "../../images/9.png", gr));  // 9
-            listDetails.AddLast(new Detail(MyColor.GREEN, TypeSide.STRAIGHT_SIDE, TypeSide.STRAIGHT_SIDE, TypeSide.SQUARE_SIDE, TypeSide.REVERSE_TRIANGLE_SIDE, "../../images/4.png", gr));  // 4
-            listDetails.AddLast(new Detail(MyColor.RED, TypeSide.STRAIGHT_SIDE, TypeSide.REVERSE_SQUARE_SIDE, TypeSide.TRIANGLE_SIDE, TypeSide.STRAIGHT_SIDE, "../../images/7.png", gr));  // 7
-            listDetails.AddLast(new Detail(MyColor.RED, TypeSide.STRAIGHT_SIDE, TypeSide.STRAIGHT_SIDE, TypeSide.STRAIGHT_SIDE, TypeSide.REVERSE_SQUARE_SIDE, "../../images/5.png", gr));  // 5
         }
 
         /// <summary>
@@ -51,16 +37,78 @@ namespace lab1_Puzzle_2b
         /// </summary>
         private void initMatrixColor()
         {
-            matrix = new MyColor[countColomns * countLines];
-            matrix[0] = MyColor.RED;
-            matrix[1] = MyColor.BLUE;
-            matrix[2] = MyColor.GREEN;
-            matrix[3] = MyColor.GREEN;
-            matrix[4] = MyColor.RED;
-            matrix[5] = MyColor.BLUE;
-            matrix[6] = MyColor.RED;
-            matrix[7] = MyColor.GREEN;
-            matrix[8] = MyColor.RED;
+            matrColor = new MyColor[countElem];
+            for (int i = 0; i < countElem; i++)
+                matrColor[i] = (MyColor)rand.Next(0, 3);
+
+        }
+        /// <summary>
+        /// Отрисовка матрицы цветов.
+        /// </summary>
+        /// <param name="startx">Начальная координата X</param>
+        /// <param name="starty">Начальная координата Y</param>
+        public void drawMatrix(int startx, int starty)
+        {
+            for (int i = 0, j = 1, k = 1; i < countElem; i++, k++)
+            {
+                if ((i != 0) && ((i % countColomns) == 0))
+                {
+                    j++;
+                    k = 1;
+                }
+                Detail.drawPol(startx + k * 50, starty + j * 50, gr, matrColor[i]);
+            }
+        }
+        /// <summary>
+        /// Рандомная генерация правильного пазла. Потом его надо перемешать.
+        /// </summary>
+        public void randomGeneratePuzzle()
+        {
+            for (int i = 0; i < countElem; i++)
+            {
+                TypeSide leftSide = TypeSide.NONE_SIDE; // тип левой стороны
+                TypeSide rightSide = TypeSide.NONE_SIDE;  // тип правой стороны
+                TypeSide upSide = TypeSide.NONE_SIDE;  // тип верхней стороны
+                TypeSide downSide = TypeSide.NONE_SIDE;  // тип нижней стороны
+                if ((i >= 0) && (i < countColomns))
+                    upSide = TypeSide.STRAIGHT_SIDE;
+                if ((i >= (countElem - countColomns)) && (i < countElem))
+                    downSide = TypeSide.STRAIGHT_SIDE;
+                if ((i % countColomns) == 0)
+                    leftSide = TypeSide.STRAIGHT_SIDE;
+                if ((i % countColomns) == (countColomns - 1))
+                    rightSide = TypeSide.STRAIGHT_SIDE;
+                if ((i == 0))
+                {
+                    if (rightSide == TypeSide.NONE_SIDE)
+                        rightSide = (TypeSide)rand.Next(-2, 2);
+                    if (downSide == TypeSide.NONE_SIDE)
+                        downSide = (TypeSide)rand.Next(-2, 2);
+                }
+                if ((i > 0) && (i < countColomns))
+                {
+                    if (leftSide == TypeSide.NONE_SIDE)
+                        leftSide = Detail.reverseSide(arrayDetails[i - 1].RightSide);
+                    if (rightSide == TypeSide.NONE_SIDE)
+                        rightSide = (TypeSide)rand.Next(-2, 2);
+                    if (downSide == TypeSide.NONE_SIDE)
+                        downSide = (TypeSide)rand.Next(-2, 2);
+                }
+                if ((i >= countColomns) && (i < countElem))
+                {
+                    if (leftSide == TypeSide.NONE_SIDE)
+                        leftSide = Detail.reverseSide(arrayDetails[i - 1].RightSide);
+                    if (upSide == TypeSide.NONE_SIDE)
+                        upSide = Detail.reverseSide(arrayDetails[i - countColomns].DownSide);
+                    if (rightSide == TypeSide.NONE_SIDE)
+                        rightSide = (TypeSide)rand.Next(-2, 2);
+                    if (downSide == TypeSide.NONE_SIDE)
+                        downSide = (TypeSide)rand.Next(-2, 2);
+                }
+                arrayDetails[i] = new Detail(matrColor[i], leftSide, rightSide, upSide, downSide, gr);
+            }
+            // перемешиваем пазл
+            matrixMix();
         }
 
         /// <summary>
@@ -74,35 +122,30 @@ namespace lab1_Puzzle_2b
             {
                 perm = pr.next();
                 for (int i = 0; i < perm.Length; i++)
-                {
                     --perm[i];
-                }
                 if (check())
-                {
-                    drawPuzzleFinish();
                     return true;
-                }
             }
             return false;
         }
         /// <summary>
         /// Отрисовка собранного пазла.
         /// </summary>
-        public void drawPuzzleFinish()
+        public void drawPuzzleFinish(int _finishX, int _finishY)
         {
-            int x = finishX;
-            int y = finishY;
-            for (int i = 0, j = 1; i < listDetails.Count; i++)
+            int x = _finishX;
+            int y = _finishY;
+            for (int i = 0, j = 1; i < countElem; i++)
             {
                 x += step;
                 if ((i != 0) && ((i % countColomns) == 0))
                 {
                     j++;
                     y += step;
-                    x = finishX+step;
+                    x = _finishX + step;
 
                 }
-                listDetails.ElementAt(perm[i]).drawDetail(x, y, gr);
+                arrayDetails[(perm[i])].drawDetail(x, y, gr);
             }
         }
 
@@ -110,21 +153,38 @@ namespace lab1_Puzzle_2b
         /// <summary>
         /// Отрисовка несобранного пазла.
         /// </summary>
-        public void drawPuzzleStart()
+        /// <param name="_startX">Начальная коодината X</param>
+        /// <param name="_startY">Начальная коодината Y</param>
+        public void drawPuzzle(int _startX, int _startY)
         {
-            int x = startX;
-            int y = startY;
-            for (int i = 0, j = 1; i < listDetails.Count; i++)
+            int x = _startX - 2 * step;
+            int y = _startY;
+            for (int i = 0, j = 1; i < countElem; i++)
             {
                 x += step;
                 if ((i != 0) && ((i % countColomns) == 0))
                 {
                     j++;
                     y += step;
-                    x = startX + step;
+                    x = _startX - step;
 
                 }
-                listDetails.ElementAt(i).drawDetail(x, y, gr);
+                arrayDetails[i].drawDetail(x, y, gr);
+            }
+        }
+
+        /// <summary>
+        /// Перемешать значения матрицы.
+        /// </summary>
+        private void matrixMix()
+        {
+            for (int i = arrayDetails.Length - 1; i >= 1; i--)
+            {
+                int j = rand.Next(i + 1);
+                // обменять значения arrayDetails[j] и arrayDetails[i]
+                Detail temp = arrayDetails[j];
+                arrayDetails[j] = arrayDetails[i];
+                arrayDetails[i] = temp;
             }
         }
 
@@ -149,47 +209,47 @@ namespace lab1_Puzzle_2b
         /// <summary>
         /// Проверка детали.
         /// </summary>
-        /// <param name="id">индекс в массиве полученной перестановки</param>
-        /// <returns></returns>
+        /// <param name="id">Индекс в массиве полученной перестановки</param>
+        /// <returns>Результат проверки</returns>
         public bool checkDetails(int id)
         {
-            if (listDetails.ElementAt(perm[id]).Color != matrix[id])
+            if (arrayDetails[perm[id]].YourColor != matrColor[id])
                 return false;
             if ((id >= 0) && (id < countColomns))
             {
-                if (listDetails.ElementAt(perm[id]).UpSide != TypeSide.STRAIGHT_SIDE)
+                if (arrayDetails[perm[id]].UpSide != TypeSide.STRAIGHT_SIDE)
                     return false;
-                if ((id >= 1) && (!Detail.equalsToPuzzle(listDetails.ElementAt(perm[id]).LeftSide, listDetails.ElementAt(perm[id - 1]).RightSide)))
+                if ((id >= 1) && (!Detail.equalsToPuzzle(arrayDetails[perm[id]].LeftSide, arrayDetails[perm[id - 1]].RightSide)))
                     return false;
             }
 
             if ((id >= (countElem - countColomns)) && (id < countElem))
             {
-                if (listDetails.ElementAt(perm[id]).DownSide != TypeSide.STRAIGHT_SIDE)
+                if (arrayDetails[perm[id]].DownSide != TypeSide.STRAIGHT_SIDE)
                     return false;
             }
             if (id == 0)
             {
-                if (listDetails.ElementAt(perm[id]).LeftSide != TypeSide.STRAIGHT_SIDE)
+                if (arrayDetails[perm[id]].LeftSide != TypeSide.STRAIGHT_SIDE)
                     return false;
             }
 
             if (id == (countElem - 1))
             {
-                if (listDetails.ElementAt(perm[id]).RightSide != TypeSide.STRAIGHT_SIDE)
+                if (arrayDetails[perm[id]].RightSide != TypeSide.STRAIGHT_SIDE)
                     return false;
             }
 
             if ((id >= countColomns) && (id < countElem))
             {
-                if (!Detail.equalsToPuzzle(listDetails.ElementAt(perm[id]).LeftSide, listDetails.ElementAt(perm[id - 1]).RightSide))
+                if (!Detail.equalsToPuzzle(arrayDetails[perm[id]].LeftSide, arrayDetails[perm[id - 1]].RightSide))
                     return false;
-                if (!Detail.equalsToPuzzle(listDetails.ElementAt(perm[id]).UpSide, listDetails.ElementAt(perm[id - countColomns]).DownSide))
+                if (!Detail.equalsToPuzzle(arrayDetails[perm[id]].UpSide, arrayDetails[perm[id - countColomns]].DownSide))
                     return false;
             }
             return true;
 
         }
 
-    }   
+    }
 }
